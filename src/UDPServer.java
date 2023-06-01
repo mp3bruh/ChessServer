@@ -7,7 +7,7 @@ public class UDPServer {
     private static final String LOCAL_IP = "localhost";
 
     public static void main(String[] args) {
-
+        //test
 
         try {
             // socket aufmachen
