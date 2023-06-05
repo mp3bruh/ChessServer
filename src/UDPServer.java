@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.net.*;
 
 public class UDPServer {
-
+    //snvkvd
     private static final int LOCAL_PORT = 6969;
     private static final String LOCAL_IP = "localhost";
 
