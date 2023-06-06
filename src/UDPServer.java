@@ -15,6 +15,24 @@ public class UDPServer {
         random = new Random();
     }
 
+    public void start() {
+        try {
+            System.out.println("horche auf port: " + LOCAL_PORT);
+            DatagramSocket socket = new DatagramSocket(LOCAL_PORT, InetAddress.getByName(LOCAL_IP));
+
+            while (true) {
+                byte[] buffer = new byte[1024];
+                DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+                socket.receive(request);
+
+                new Thread(() -> handleRequest(request)).start();
+            }
+
+        } catch (IOException e) {
+            System.out.println("FEHLER: " + e.getMessage());
+        }
+    }
+
     public String createRoomId(){
         String roomId;
         do{
@@ -51,12 +69,18 @@ public class UDPServer {
     public void handleRequest(DatagramPacket request) {
         String message = new String(request.getData(), 0, request.getLength());
         if (message.equals("CREATE_ROOM")) {
-            String roomId = createRoomId();
-            createRoom(roomId);
+            System.out.println("CREATE_ROOM von "+ request.getAddress() +":"+ request.getPort());
+            String roomId = createRoom(createRoomId());
             sendResponse(roomId, request.getAddress(), request.getPort());
         } else if (message.startsWith("JOIN_ROOM:")) {
             String roomId = message.substring("JOIN_ROOM:".length());
-            joinRoom(roomId, new InetSocketAddress(request.getAddress(), request.getPort()));
+            System.out.println("JOIN_ROOM von "+ request.getAddress() +":"+ request.getPort());
+            if(rooms.containsKey(roomId)){
+                joinRoom(roomId, new InetSocketAddress(request.getAddress(), request.getPort()));
+                // checken ob mehr als 2 spieler im raum sind
+                sendResponse("Raum gefunden!", request.getAddress(), request.getPort());
+            }
+
         }
     }
 
@@ -74,28 +98,7 @@ public class UDPServer {
 
 
     public static void main(String[] args) {
-
-        try {
-            // socket aufmachen
-            System.out.println("horche auf port: " + LOCAL_PORT);
-            DatagramSocket socket= new DatagramSocket(LOCAL_PORT,InetAddress.getByName(LOCAL_IP));
-            byte[] buffer = new byte[1024];
-            DatagramPacket postkarte = new DatagramPacket(buffer, buffer.length);
-            socket.receive(postkarte);
-
-            // postkarte ausgeben
-            String data= new String(postkarte.getData(), 0, postkarte.getLength());
-            System.out.println("bekommen: " + data);
-
-            // socket schließen
-            System.out.println("beende das Horchen!!!");
-            socket.close();
-
-        } catch (IOException e) {
-            System.out.println("FEHLER: " + e.getMessage());
-        }
-
-
+        new UDPServer().start();
     }
 
 }
